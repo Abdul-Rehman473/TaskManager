@@ -1,6 +1,4 @@
-﻿@* 
-
-@page "/taskmanagement"
+﻿@page "/"
 @using BlazorApp.Models
 @using BlazorApp.Services
 @inject TaskService TaskService
@@ -13,28 +11,38 @@
         <h4>Edit Task</h4>
         <EditForm Model="@editTask" OnValidSubmit="@SaveEditTask">
             <DataAnnotationsValidator />
-            <ValidationSummary />
+           
 
             <div class="form-group">
                 <label>Title</label>
                 <InputText @bind-Value="editTask.Title" class="form-control" />
+                <span class="text-danger">
+                    <ValidationMessage For="@(() => editTask.Title)" />
+                </span>
             </div>
             <br />
+
             <div class="form-group">
                 <label>Description</label>
                 <InputText @bind-Value="editTask.Description" class="form-control" />
+                <span class="text-danger">
+                    <ValidationMessage For="@(() => editTask.Description)" />
+                </span>
             </div>
             <br />
+
             <div class="form-group">
                 <label>Is Completed</label>
                 <InputCheckbox @bind-Value="editTask.IsCompleted" />
             </div>
             <br />
+
             <div class="form-group">
                 <label>Completed At (optional)</label>
                 <InputDate @bind-Value="editTask.CompletedAt" class="form-control" />
             </div>
             <br />
+
             <button type="submit" class="btn btn-success">Save</button>
             <button class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
         </EditForm>
@@ -44,32 +52,42 @@ else
 {
     <EditForm Model="@newTask" OnValidSubmit="@HandleCreateTask">
         <DataAnnotationsValidator />
-        <ValidationSummary />
+        
 
         <div class="form-group">
             <label>Title</label>
             <InputText @bind-Value="newTask.Title" class="form-control" />
+            <span class="text-danger">
+                <ValidationMessage For="@(() => newTask.Title)" />
+            </span>
         </div>
         <br />
+
         <div class="form-group">
             <label>Description</label>
             <InputText @bind-Value="newTask.Description" class="form-control" />
+            <span class="text-danger">
+                <ValidationMessage For="@(() => newTask.Description)" />
+            </span>
         </div>
         <br />
+
         <div class="form-group">
             <label>Is Completed</label>
             <InputCheckbox @bind-Value="newTask.IsCompleted" />
         </div>
         <br />
+
         <div class="form-group">
             <label>Completed At (optional)</label>
             <InputDate @bind-Value="newTask.CompletedAt" class="form-control" />
         </div>
         <br />
+
         <button type="submit" class="btn btn-primary">Create Task</button>
     </EditForm>
 }
-
+<br/>
 <h4>Task List</h4>
 @if (tasks == null || !tasks.Any())
 {
@@ -77,6 +95,7 @@ else
 }
 else
 {
+
     <div class="table-responsive">
         <table class="table table-striped table-hover table-bordered">
             <thead>
@@ -96,7 +115,7 @@ else
                         <td>@task.Title</td>
                         <td>@task.Description</td>
                         <td>@task.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                        <td>@task.IsCompleted</td>
+                        <td>@(task.IsCompleted ? "Complete" : "Pending")</td>
                         <td>@(task.CompletedAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
                         <td>
                             <div class="btn-group" role="group">
@@ -120,146 +139,6 @@ else
         </table>
     </div>
 }
-
-@code {
-    private CreateToDoTaskDto newTask = new CreateToDoTaskDto();
-    private List<ToDoTaskDto> tasks = new List<ToDoTaskDto>();
-    private CreateToDoTaskDto editTask = new CreateToDoTaskDto();
-    private bool showEditForm = false;
-    private int? editingTaskId; // Track which task is being edited
-
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadTasks();
-    }
-
-    private async Task HandleCreateTask()
-    {
-        await TaskService.CreateTaskAsync(newTask);
-        newTask = new CreateToDoTaskDto();
-        await LoadTasks();
-    }
-
-    private async Task LoadTasks()
-    {
-        tasks = await TaskService.GetTasksAsync();
-    }
-
-    private async Task ToggleComplete(ToDoTaskDto task)
-    {
-        task.IsCompleted = !task.IsCompleted;
-        await TaskService.UpdateTaskAsync(task);
-        await LoadTasks();
-    }
-
-    private void EditTask(ToDoTaskDto task)
-    {
-        editTask = new CreateToDoTaskDto
-        {
-            Title = task.Title,
-            Description = task.Description,
-            IsCompleted = task.IsCompleted,
-            CompletedAt = task.CompletedAt
-        };
-        editingTaskId = task.Id; // Store the task ID being edited
-        showEditForm = true;
-    }
-
-    private async Task SaveEditTask()
-    {
-        if (editingTaskId.HasValue)
-        {
-            var taskToUpdate = tasks.FirstOrDefault(t => t.Id == editingTaskId.Value);
-            if (taskToUpdate != null)
-            {
-                taskToUpdate.Title = editTask.Title;
-                taskToUpdate.Description = editTask.Description;
-                taskToUpdate.IsCompleted = editTask.IsCompleted;
-                taskToUpdate.CompletedAt = editTask.CompletedAt;
-                try
-                {
-                    await TaskService.UpdateTaskAsync(taskToUpdate);
-                    showEditForm = false;
-                    editTask = new CreateToDoTaskDto();
-                    editingTaskId = null;
-                    await LoadTasks();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-            }
-        }
-    }
-
-    private void CancelEdit()
-    {
-        showEditForm = false;
-        editTask = new CreateToDoTaskDto();
-        editingTaskId = null;
-    }
-
-    private async Task DeleteTask(int id)
-    {
-        await TaskService.DeleteTaskAsync(id);
-        await LoadTasks();
-    }
-} *@
-
-@page "/taskmanagement"
-@using BlazorApp.Pages.Components
-@using BlazorApp.Models
-@using BlazorApp.Services
-@inject TaskService TaskService
-
-<h3>Task Management</h3>
-
-@if (showEditForm)
-{
-<TaskEdit EditTaskModel="editTask" ShowEditForm="true" SaveEdit="SaveEditTask" CancelEdit="CancelEdit" />
-}
-else
-{
-    <EditForm Model="@newTask" OnValidSubmit="@HandleCreateTask">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
-
-        <div class="form-group">
-            <label>Title</label>
-            <InputText @bind-Value="newTask.Title" class="form-control" />
-        </div>
-        <br />
-        <div class="form-group">
-            <label>Description</label>
-            <InputText @bind-Value="newTask.Description" class="form-control" />
-        </div>
-        <br />
-        <div class="form-group">
-            <label>Is Completed</label>
-            <InputCheckbox @bind-Value="newTask.IsCompleted" />
-        </div>
-        <br />
-        <div class="form-group">
-            <label>Completed At (optional)</label>
-            <InputDate @bind-Value="newTask.CompletedAt" class="form-control" />
-        </div>
-        <br />
-
-
-        <button type="submit" class="btn btn-primary">Create Task</button>
-    </EditForm>
-}
-
-<h4>Task List</h4>
-
-
-@* <TaskList Items="tasks" ToggleComplete="ToggleComplete" EditTask="EditTask" DeleteTask="DeleteTask" />   *@
-<TaskList TItem="ToDoTaskDto"
-          Items="tasks"
-          ToggleComplete="ToggleComplete"
-          EditTask="EditTask"
-          DeleteTask="DeleteTask" />
-
 
 @code {
     private CreateToDoTaskDto newTask = new CreateToDoTaskDto();
@@ -316,6 +195,7 @@ else
                 taskToUpdate.Description = editTask.Description;
                 taskToUpdate.IsCompleted = editTask.IsCompleted;
                 taskToUpdate.CompletedAt = editTask.CompletedAt;
+
                 try
                 {
                     await TaskService.UpdateTaskAsync(taskToUpdate);
@@ -326,7 +206,7 @@ else
                 }
                 catch (Exception ex)
                 {
-                    // Log or display error (e.g., Console.WriteLine(ex.Message))
+                    Console.WriteLine(ex.Message);
                 }
             }
         }
