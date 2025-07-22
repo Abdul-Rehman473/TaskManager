@@ -1,0 +1,69 @@
+## Ignore Visual Studio temporary files, build results, and
+## user-specific files
+
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build Results
+[Bb]in/
+[Oo]bj/
+[Dd]ebug*/
+[Rr]elease*/
+x64/
+x86/
+*.dll
+*.exe
+*.app
+*.log
+*.pdb
+*.cache
+*.dbmdl
+*.bak
+*.orig
+
+# ASP.NET Core
+appsettings.*.json
+secrets.json
+project.lock.json
+project.fragment.lock.json
+*.ide.csproj
+
+# Entity Framework Core
+Migrations/
+
+# Rider
+.idea/
+*.sln.iml
+
+# JetBrains Rider/Resharper cache
+_ReSharper*/
+*.DotSettings.user
+
+# Visual Studio Code
+.vscode/
+.history/
+*.code-workspace
+
+# Blazor-specific
+wwwroot/dist/
+wwwroot/generated/
+node_modules/
+**/bundle*.js
+**/bundle*.map
+*.gz
+*.br
+
+# NPM/Yarn
+package-lock.json
+yarn.lock
+
+# Environment files
+.env
+.env.*
+
+# Logs
+*.log
+logs/
